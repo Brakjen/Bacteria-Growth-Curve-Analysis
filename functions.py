@@ -36,10 +36,7 @@ def toLongForm(df, template):
 
 def graphTemplate(template, savefig=False):
     """Read the manually generated template, and make a heatmap
-    visualization of the plate system.
-
-    NOTE: This only works with the generic template, as it requires s
-    numerical representation of the wells."""
+    visualization of the plate layout."""
     df = pd.DataFrame(template).astype(float)
     xlabels = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
     ylabels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
@@ -142,7 +139,6 @@ def graphCombinedGrowthCurves(df, col_wrap=5, augment=True, log=True, savefig=Fa
 def combineReplicates(df):
     """Takes the long-form df as input, which contains
     information about the group IDs."""
-    # First sort by group ID and Time_hours
     final = pd.DataFrame()
     for group in sorted(df.Group.unique().tolist(), key=lambda g: int(g)):
         sub = df.loc[df.Group == group].reset_index()
