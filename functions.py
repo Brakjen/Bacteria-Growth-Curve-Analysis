@@ -14,7 +14,7 @@ def getPlateGroup(well, template):
     from the template"""
     row = int(coordMap[well[0].upper()]) - 1
     col = int(well[1:]) - 1
-    return template[row][col]
+    return str(template[row][col])
 
 
 def toLongForm(df, template):
@@ -69,7 +69,7 @@ def graphTemplate(template, savefig=False):
 
 
 def graphAllGrowthCurves(df, col_wrap=10, savefig=False):
-    """Plot all growth curves in a grid.
+    """Plot all growth curves in a grid, color coded by group ID.
 
     col_wrap controls the number of columns in each row. Adjust to each
     individual plate design."""
@@ -91,7 +91,7 @@ def graphAllGrowthCurves(df, col_wrap=10, savefig=False):
 
 
 def graphCombinedGrowthCurves(df, col_wrap=5, augment=True, log=True, savefig=False):
-    """Plot combined growth curves in a grid, color coded by the template group.
+    """Plot combined growth curves in a grid.
 
     <col_wrap> controls the number of columns in each row. Adjust to each
     individual plate design.
@@ -106,10 +106,11 @@ def graphCombinedGrowthCurves(df, col_wrap=5, augment=True, log=True, savefig=Fa
                        kind='scatter',
                        col='Group', col_wrap=col_wrap,
                        legend=False,
-                       s=30,
+                       s=40,
                        marker='.',
                        height=3,
-                       color='black')
+                       color='black',
+                       zorder=99)
 
     # Iterate over the individual axes in the grid to add individual modifications
     if augment:
@@ -118,18 +119,18 @@ def graphCombinedGrowthCurves(df, col_wrap=5, augment=True, log=True, savefig=Fa
             sub = df.loc[df.Group == group]
             x = sub.Time_hours
             if log:
-                plus = sub.logStdUpper
-                minus = sub.logStdLower
+                plus = sub.logStDevUpper
+                minus = sub.logStDevLower
             else:
                 plus = sub.Mean + sub.StDev
                 minus = sub.Mean - sub.StDev
 
-            ax.fill_between(x, plus, minus, alpha=0.3, zorder=0)
+            ax.fill_between(x, plus, minus, alpha=0.2, color='skyblue')
 
             # Add blank growth curves to all groups for a comparison
             # Group '0' means blank
-            blanks = df.loc[df.Group == 0]
-            sns.scatterplot(data=blanks, x='Time_hours', y='Mean' if not log else 'logMean', ax=ax, s=5, color='black', marker='.')
+            blanks = df.loc[df.Group == '0']
+            sns.scatterplot(data=blanks, x='Time_hours', y='Mean' if not log else 'logMean', ax=ax, s=15, color='crimson', marker='.')
 
     plt.tight_layout()
     if savefig:
@@ -157,6 +158,6 @@ def combineReplicates(df):
 
     # Add log transformed columns
     final['logMean'] = np.log2(final.Mean)
-    final['logStdUpper'] = np.log2(final.Mean + final.StDev)
-    final['logStdLower'] = np.log2(final.Mean - final.StDev)
+    final['logStDevUpper'] = np.log2(final.Mean + final.StDev)
+    final['logStDevLower'] = np.log2(final.Mean - final.StDev)
     return final.reset_index()
