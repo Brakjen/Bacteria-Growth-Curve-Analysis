@@ -45,7 +45,7 @@ def toLongForm(df, template):
     return melted
 
 
-def graphTemplate(template, savefig=False, show=True):
+def graphTemplate(template, savefig=False, show=True, annot_size=10, filename='Fig_Template.png'):
     """Read the manually generated template, and make a heatmap
     visualization of the plate layout.
     
@@ -63,7 +63,7 @@ def graphTemplate(template, savefig=False, show=True):
                 ax=ax,
                 annot=template,
                 fmt='',
-                annot_kws={'fontsize': 10},
+                annot_kws={'fontsize': annot_size},
                 linewidths=2,
                 linecolor='black',
                 cbar=False,
@@ -77,13 +77,13 @@ def graphTemplate(template, savefig=False, show=True):
     ax.set_title('96-Well Layout', fontsize=FS)
     fig.tight_layout()
     if savefig:
-        plt.savefig('FigTemplate.png')
+        plt.savefig(filename)
     if show:
         plt.show()
     return ax
 
 
-def graphAllGrowthCurves(df, col_wrap=10, savefig=False, show=True):
+def graphAllGrowthCurves(df, col_wrap=10, savefig=False, show=True, filename='Fig_AllCurves.png'):
     """Plot all growth curves in a grid, color coded by group ID.
 
     <col_wrap> controls the number of columns in each row. Adjust to each
@@ -104,13 +104,13 @@ def graphAllGrowthCurves(df, col_wrap=10, savefig=False, show=True):
                        palette='bright')
     plt.tight_layout()
     if savefig:
-        plt.savefig('FigAllGrowthCurves.png')
+        plt.savefig(filename)
     if show:
         plt.show()
     return grid
 
 
-def graphCombinedGrowthCurves(df, col_wrap=5, augment=True, log=True, savefig=False, show=True):
+def graphCombinedGrowthCurves(df, col_wrap=5, augment=True, log=True, savefig=False, show=True, filename='Fig_CombinedCurves.png'):
     """Plot combined growth curves in a grid.
     Note that blank sample wells must be called 'Blank' in order for
     this function to be able to identify them.
@@ -159,7 +159,7 @@ def graphCombinedGrowthCurves(df, col_wrap=5, augment=True, log=True, savefig=Fa
 
     plt.tight_layout()
     if savefig:
-        plt.savefig(f'FigCombinedGrowthCurves_log={log}_augment={augment}.png')
+        plt.savefig(filename)
     if show:
         plt.show()
     return grid
@@ -225,7 +225,7 @@ def richardsCurveFitting(x, y, initial, bounds, maxfev=1000):
     return func, popt
 
 
-def graphCurveFitting(df, col_wrap=5, savefig=False, show=True):
+def graphCurveFitting(df, col_wrap=5, savefig=False, show=True, filename='Fig_CurveFitting.png'):
     """Plot all the combined growth curves, overlayed with the
     fitted Richard's Curve."""
     sns.set_theme(style='ticks')
@@ -252,10 +252,11 @@ def graphCurveFitting(df, col_wrap=5, savefig=False, show=True):
         
         func, popt = richardsCurveFitting(x, y, initial=init, bounds=(lower, upper))
         sns.lineplot(ax=ax, x=x, y=func(x, *popt), color='red')
+        print('Done', end='\n')
 
     plt.tight_layout()
     if savefig:
-        plt.savefig(f'FigCombinedGrowthCurves_log={log}_augment={augment}.png')
+        plt.savefig(filename)
     if show:
         plt.show()
     return grid
