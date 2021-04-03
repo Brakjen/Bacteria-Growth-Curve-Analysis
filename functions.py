@@ -225,6 +225,25 @@ def richardsCurveFitting(x, y, initial, bounds, maxfev=1000):
     return func, popt
 
 
+def curveFitOnPlate(df):
+    """Perform the richards curve fitting on all groups in the dataframe
+    (the one with the combined replicates).
+    
+    Return the function and optimized parameters."""
+    data = []
+    for group in df.Group.unique():
+        sub = df.loc[df.Group == group]
+        x = sub.Time_hours
+        y = sub.logMean
+        init = [max(y), min(y), 0.5, 0.5]
+        lower = (max(y) - 0.5, min(y) - 0.05, 0.01, 0.01)
+        upper = (max(y) + 0.5, min(y) + 0.05, 5.0, 10.0)
+        func, popt = richardsCurveFitting(x, y, initial=init, bounds=(lower, upper))
+        data.append((group, *popt))
+        
+    return func, pd.DataFrame(data, columns=['Group', 'U', 'L', 'k', 'v'])
+
+
 def graphCurveFitting(df, col_wrap=5, savefig=False, show=True, filename='Fig_CurveFitting.png'):
     """Plot all the combined growth curves, overlayed with the
     fitted Richard's Curve."""
@@ -242,17 +261,13 @@ def graphCurveFitting(df, col_wrap=5, savefig=False, show=True, filename='Fig_Cu
                        zorder=0)
 
     # Iterate over the individual axes in the grid to add individual modifications
+    func, params = curveFitOnPlate(df)
     for group, ax in grid.axes_dict.items():
+        popt = params.loc[params.Group == group].values[0][1:]
         sub = df.loc[df.Group == group]
-        x = sub['Time_hours']
-        y = sub['logMean']
-        init = [max(y), min(y), 0.5, 0.5]
-        lower = (max(y) - 0.5, min(y) - 0.05, 0.01, 0.01)
-        upper = (max(y) + 0.5, min(y) + 0.05, 5.0, 10.0)
-        
-        func, popt = richardsCurveFitting(x, y, initial=init, bounds=(lower, upper))
-        sns.lineplot(ax=ax, x=x, y=func(x, *popt), color='red')
-        print('Done', end='\n')
+        x = sub.Time_hours
+        y = func(x, *popt)
+        sns.lineplot(ax=ax, x=x, y=y, color='red')
 
     plt.tight_layout()
     if savefig:
