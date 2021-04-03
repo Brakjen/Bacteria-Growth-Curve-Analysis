@@ -235,9 +235,9 @@ def curveFitOnPlate(df):
         sub = df.loc[df.Group == group]
         x = sub.Time_hours
         y = sub.logMean
-        init = [max(y), min(y), 0.5, 0.5]
+        init = [max(y), min(y), 0.25, 0.5]
         lower = (max(y) - 0.5, min(y) - 0.05, 0.01, 0.01)
-        upper = (max(y) + 0.5, min(y) + 0.05, 5.0, 10.0)
+        upper = (max(y) + 0.5, min(y) + 0.05, 2.0, 10.0)
         func, popt = richardsCurveFitting(x, y, initial=init, bounds=(lower, upper))
         data.append((group, *popt))
         
