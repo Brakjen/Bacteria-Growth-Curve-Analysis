@@ -1,0 +1,9 @@
+,0,1,2,3,4,5,6,7,8,9,10,11
+0,,,,,,,,,,,,
+1,,Glucose,Glucose,Glucose,Mannose,Mannose,Mannose,Na-acetate,Na-acetate,Na-acetate,LB15,
+2,,Fructose,Fructose,Fructose,Arabinose,Arabinose,Arabinose,Ethanol,Ethanol,Ethanol,LB15,
+3,,Galactose,Galactose,Galactose,D-L-Malic_Acid,D-L-Malic_Acid,D-L-Malic_Acid,Na-gluconate,Na-gluconate,Na-gluconate,LB15,
+4,,Xylose,Xylose,Xylose,N-acetyl-gluco.,N-acetyl-gluco.,N-acetyl-gluco.,Formic_acid,Formic_acid,Formic_acid,LB15wash,
+5,,Mannitol,Mannitol,Mannitol,Glycerol,Glycerol,Glycerol,Valeric_acid,Valeric_acid,Valeric_acid,LB15wash,
+6,,Blank,Blank,Blank,Lactic_acid,Lactic_acid,Lactic_acid,Propionic_acid,Propionic_acid,Propionic_acid,LB15wash,
+7,,,,,,,,,,,,
