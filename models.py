@@ -264,4 +264,4 @@ class Richards:
         I_1 = (b - a) * min(self.y)
         I_2, _ = quad(self.func, args=self.popt, a=a, b=b)
         return abs(I_1 - I_2)
-    
+
