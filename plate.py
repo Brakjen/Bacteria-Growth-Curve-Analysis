@@ -4,52 +4,62 @@ import seaborn as sns
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
+from copy import deepcopy
 
 from models import Richards, RichardsModified, LogisticSymmetric
 
 
 class Plate:
     """Class representing a plate experiment."""
-    def __init__(self, f, widefile, blank_name='Blank', ID=None):
+    def __init__(self, template=None, data=None, blank_name='Blank', ID=None, delimiter=','):
         """
         Parameters
         -----------
         f <str>: path to template CSV file
         widefile <str>: path to wideform CSV file
         blank_name <str>: Name of blank wells
+        ID <str>: Unique identifier for this plate object
+        delimiter <str>: which delimiter used in CSV files (Default: ,)
         """
-        print('Initializing ... ', end='')
-        self.platefile = f
-        self.widefile = widefile
-        
-        if ID is None:
-            self.ID = os.path.basename(self.widefile).split('.')[0]
-        else:
-            self.ID = ID
+        self.platefile = template
+        self.widefile = data
+        self.ID = ID
         
         self.blank_name = blank_name
-        self.plate = self._read_file()
-        self.wide = self._read_wide()
-        self.long = self._to_longform()
-        self.combined = self._combine_replicates()
+        self.delimiter = delimiter
         
+        if all([self.platefile is not None, self.widefile is not None]):
+            self.plate = self._read_file()
+            self.wide = self._read_wide()
+            self.long = self._to_longform()
+            self.combined = self._combine_replicates()
+        else:
+            self.plate = pd.DataFrame()
+            self.wide = pd.DataFrame()
+            self.long = pd.DataFrame()
+            self.combined = pd.DataFrame()
+            
         self.long['ID'] = self.ID
         self.combined['ID'] = self.ID
-        print('Done', end='\n')
+        print(self.ID)
         
     def __add__(self, other):
         """Overload the + operator so that two Plates can easily be concatenated."""
-        added_long = pd.concat([self.long, other.long], axis=0)
-        added_comb = pd.concat([self.combined, other.combined], axis=0)
-        return added_long, added_comb
+        long = pd.concat([self.long, other.long], axis=0)
+        comb = pd.concat([self.combined, other.combined], axis=0)
+        
+        p = Plate(ID=f'{self.ID}+{other.ID}')
+        p.long = long
+        p.combined = comb
+        return p
         
     def _read_file(self):
         """Load plate template to DataFrame."""
-        return pd.read_csv(self.platefile, index_col=0)
+        return pd.read_csv(self.platefile, delimiter=self.delimiter)
     
     def _read_wide(self):
         """Load wideform CSV file to DataFrame"""
-        return pd.read_csv(self.widefile, delimiter=';')
+        return pd.read_csv(self.widefile, delimiter=self.delimiter)
     
     def _to_numeric(self):
         """Convert string group names to numbers for visualization."""
@@ -394,8 +404,8 @@ class Plate:
         print(df)
         
         if savefiles:
-            params.to_csv(f'{self.ID}_OptimizedModelParameters.csv')
-            df.to_csv(f'{self.ID}_AreasAndRates.csv')
+            params.to_csv(f'{self.ID}_OptimizedModelParameters.csv', index=False)
+            df.to_csv(f'{self.ID}_AreasAndRates.csv', index=False)
             
     def show_temperatures(self, savefig=False, filename=None):
         """Visualize the temperature distribution throughout the experiment."""
@@ -409,3 +419,37 @@ class Plate:
                 filename = f'{self.ID}_Temperatures.png'
             plt.savefig(filename)
         return ax
+
+    def show_comparison_to(self, others, log=True, savefig=False, filename=None):
+        """Visually compare to another Plate object using Seaborn.
+        
+        Parameters
+        -----------
+        others <Plate/list>: if Plate, compare to the passed Plate. If list, compare to all Plates in list
+        log <bool>: Whether to use log-transformed y values or not
+        savefig <bool>: 
+        filename <str>: 
+        """
+        if isinstance(others, Plate):
+            final = self + others
+        elif isinstance(others, list):
+            final = deepcopy(self)
+            for other in others:
+                final += other
+        
+        grid = sns.relplot(data=final.combined,
+                           x='Time_hours',
+                           y = 'logMean' if log else 'Mean',
+                           kind='scatter',
+                           marker='.',
+                           s=40,
+                           col='Group',
+                           col_wrap=5,
+                           height=3,
+                           hue='ID')
+        
+        if savefig:
+            if filename is None:
+                filename = final.ID+'.png'
+            plt.savefig(filename)
+        return grid, final
