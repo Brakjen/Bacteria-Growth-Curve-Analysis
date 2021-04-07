@@ -194,25 +194,13 @@ class Plate:
     def _combine_replicates(self):
         """Combine same group names and calculate Mean, StDev
         and log transforms."""
-        final = pd.DataFrame()
-        for group in self.long.Group.unique():
-            sub = self.long.loc[self.long.Group == group]
-            g = sub.groupby(by=['Time_hours']).describe()
-            n = g['Absorption', 'count']
-            mean = g['Absorption', 'mean']
-            std = g['Absorption', 'std']
-            temp = g['Temp', 'mean']
-            temp_std = g['Temp', 'std']
-            
-            tmp = pd.DataFrame([temp, temp_std, n, mean, std]).transpose()
-            tmp.columns = ['Temp_Mean','Temp_StDev', 'n', 'Mean', 'StDev']
-            tmp['Group'] = group
-            final = pd.concat([final, tmp], axis=0)
-            
+        mean = self.long.groupby(['Group', 'Time_hours']).mean().reset_index().rename(columns={'Temp': 'Temp_Mean', 'Absorption': 'Mean'})
+        std = self.long.groupby(['Group', 'Time_hours']).std().reset_index().rename(columns={'Temp': 'Temp_StDev', 'Absorption': 'StDev'})
+        final = pd.concat([mean, std], axis=1)
         final['logMean'] = np.log2(final.Mean)
         final['logStDevUpper'] = np.log2(final.Mean + final.StDev)
         final['logStDevLower'] = np.log2(final.Mean - final.StDev)
-        return final.reset_index()
+        return final.loc[:,~final.columns.duplicated()]
     
     def show_combined_curves(self, col_wrap=5, log=True, savefig=False, filename=None):
         """Plot combined growth curves, overlayed with stdev ranges and blanks.
