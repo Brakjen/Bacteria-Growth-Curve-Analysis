@@ -13,7 +13,7 @@ class LogisticSymmetric:
     U: Upper asymptote
     L: Lower asymptote
     k: maximum growth rate
-    x0: x-location of maximum growth rate
+    x0: horizontal shift
     """
     def __init__(self, x, y, p0=None, lower=None, upper=None, maxfev=None):
         self.x = x
@@ -90,7 +90,7 @@ class RichardsModified:
     k1: first rate parameter
     k2: second rate parameter
     v: asymmetry parameter
-    x0: x-shift
+    x0: horizontal shift
     """
     def __init__(self, x, y, p0=None, lower=None, upper=None, maxfev=None):
         self.x = x
@@ -202,6 +202,7 @@ class Richards:
     L: Lower asymptote
     k: maximum growth rate
     v: asymmetry parameter
+    x0: horizontal shift
     """
     def __init__(self, x, y, p0=None, lower=None, upper=None, maxfev=None):
         self.x = x
@@ -213,26 +214,26 @@ class Richards:
             self.maxfev = maxfev
         
         if p0 is None:
-            self.p0 = (max(self.y), min(self.y), 0.01, 1.0)
+            self.p0 = (max(self.y), min(self.y), 0.01, 1.0, 1.0)
         else:
             self.p0 = p0
             
         if lower is None:
-            self.lower = (-np.inf, -np.inf, 0.0001, 0.0001)
+            self.lower = (-np.inf, -np.inf, 0.0001, 0.0001, min(self.x))
         else:
             self.lower = lower
             
         if upper is None:
-            self.upper = (np.inf, np.inf, np.inf, np.inf)
+            self.upper = (np.inf, np.inf, np.inf, np.inf, max(self.x))
         else:
             self.upper = upper
             
         self.popt = None
         self.pcov = None
         
-    def func(self, x, U, L, k, v):
+    def func(self, x, U, L, k, v, x0):
         """Compute function."""
-        return L + ( (U - L)/ ((1 + np.exp(-k*x))**1/v) )
+        return L + ( (U - L)/ ((1 + np.exp(-k*(x-x0)))**1/v) )
         
         
     def fit(self):
@@ -244,12 +245,12 @@ class Richards:
     
     def symbolic_function(self):
         """Symbolic representation of the function."""
-        x, U, L, k, v = sp.symbols('x U L k v')
-        return L + (U - L) / (1 + sp.exp(-k*x))**(1/v)
+        x, U, L, k, v, x0 = sp.symbols('x U L k v x0')
+        return L + (U - L) / (1 + sp.exp(-k*(x-x0)))**(1/v)
     
     def max_growth_rate(self):
         """Return the maximum growth rate."""
-        U, L, k, v = self.popt
+        U, L, k, v, x0 = self.popt
         return k
     
     def area_under_curve(self, a=None, b=None):
