@@ -15,8 +15,8 @@ class Plate:
         """
         Parameters
         -----------
-        f <str>: path to template CSV file
-        widefile <str>: path to wideform CSV file
+        template <str>: path to template CSV file
+        data <str>: path to wideform CSV file
         blank_name <str>: Name of blank wells
         ID <str>: Unique identifier for this plate object
         delimiter <str>: which delimiter used in CSV files (Default: ,)
